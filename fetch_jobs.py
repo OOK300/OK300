@@ -18,8 +18,14 @@ for q in QUERIES:
         if not url:continue
         items[str(v['id'])]={'id':str(v['id']),'title':v.get('name',''),'company':(v.get('employer') or {}).get('name',''),'pay':amount,'salary_from':salary.get('from'),'salary_to':salary.get('to'),'work':fmt,'location':(v.get('area') or {}).get('name',''),'url':url,'published':v.get('published_at',''),'source':'hh.ru'}
     time.sleep(.4)
+
 if not items:
-    print('No results: keeping previous data to avoid replacing with empty data')
+    print('No vacancies received. Checking previous data.')
+    if not (ROOT / 'vacancies.json').exists():
+        (ROOT / 'vacancies.json').write_text(
+            json.dumps({'updated_at': None, 'jobs': []}, ensure_ascii=False),
+            encoding='utf-8'
+        )
     raise SystemExit(0)
 output={'updated_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'jobs':sorted(items.values(),key=lambda x:x['published'],reverse=True)}
 (ROOT/'vacancies.json').write_text(json.dumps(output,ensure_ascii=False,indent=2),encoding='utf-8')
